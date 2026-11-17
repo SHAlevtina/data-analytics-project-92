@@ -84,4 +84,44 @@ from customers
 group by age_category
 order by age_category;
 
+-- Количество уникальных покупателей и выручка, которую они принесли. 
+    -- selling_month - дата в указанном формате ГОД- МЕСЯЦ
+    -- total_customers - количество покупателей
+    -- income - принесенная выручка
+
+    select
+        to_char(sale_date, 'YYYY-MM') as selling_month,
+    		count(distinct s.customer_id) as total_customers,
+    		 floor(sum(s.quantity * p.price)) as income
+    from sales s
+    join products p on p.product_id = s.product_id
+      group by selling_month
+    order by selling_month;
+
+-- Покупатели, первая покупка которых была в ходе проведения акций
+    -- customer - имя и фамилия покупателя
+    -- sale_date - дата покупки
+    -- seller - имя и фамилия продавца
+
+with filt as (
+select
+s.customer_id,
+        c.first_name || ' ' || c.last_name as customer,
+		sale_date,
+        e.first_name || ' ' || e.last_name as seller,
+        row_number() over (
+   partition by s.customer_id) as rn,
+   p.price
+from sales s 
+ join employees e on s.sales_person_id = e.employee_id
+ join products p on p.product_id = s.product_id
+ join customers c on s.customer_id = c.customer_id )
+      select 
+   customer,
+   sale_date,
+   seller
+  from filt
+  where rn = 1 and price = 0
+order by customer_id;
+   
 
