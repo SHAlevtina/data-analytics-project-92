@@ -66,7 +66,7 @@ with sumsum as (
 )
 select
     seller,
-    floor(sum(income)),
+    floor(sum(income)) as income,
     trim(to_char(sale_date, 'day')) as day_of_week  
 from sumsum
 group by employee_id, seller, num_day, day_of_week
