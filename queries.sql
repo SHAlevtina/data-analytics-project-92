@@ -16,7 +16,6 @@ inner join employees as e
 inner join products as p
     on s.product_id = p.product_id
 group by
-    e.employee_id,
     e.first_name,
     e.last_name
 order by income desc
@@ -57,32 +56,21 @@ order by average_income asc;
 -- seller — имя и фамилия продавца
 -- day_of_week — название дня недели на английском языке
 -- income — суммарная выручка продавца в день недели
-with daily_sales as (
-    select
-        s.sale_date,
-        e.employee_id,
-        extract(isodow from s.sale_date) as num_day,
-        e.first_name || ' ' || e.last_name as seller,
-        s.quantity * p.price as income
-    from sales as s
-    inner join employees as e
-        on s.sales_person_id = e.employee_id
-    inner join products as p
-        on s.product_id = p.product_id
-)
-
 select
-    seller,
-    floor(sum(income)) as income,
-    trim(to_char(sale_date, 'day')) as day_of_week
-from daily_sales
+    e.first_name || ' ' || e.last_name as seller,
+    trim(to_char(s.sale_date, 'day')) as day_of_week,
+    floor(sum(s.quantity * p.price)) as income
+from sales as s
+inner join employees as e
+    on s.sales_person_id = e.employee_id
+inner join products as p
+    on s.product_id = p.product_id
 group by
-    employee_id,
-    seller,
-    num_day,
-    day_of_week
+    e.employee_id,
+    extract(isodow from s.sale_date),
+    trim(to_char(s.sale_date, 'day'))
 order by
-    num_day asc,
+    extract(isodow from s.sale_date) asc,
     seller asc;
 
 -- Количество покупателей в разных возрастных группах
