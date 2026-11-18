@@ -27,11 +27,11 @@ limit 10;
 -- Таблица отсортирована по выручке по возрастанию
 -- seller — имя и фамилия продавца
 -- average_income — средняя выручка продавца за сделку
-with sumalls as (
+with sales_deals as (
     select
         e.employee_id,
         e.first_name || ' ' || e.last_name as seller,
-        s.quantity * p.price as sumall_income
+        s.quantity * p.price as deal_income
     from sales as s
     inner join employees as e
         on s.sales_person_id = e.employee_id
@@ -40,16 +40,16 @@ with sumalls as (
 )
 
 select
-    s1.seller,
-    floor(avg(s1.sumall_income)) as average_income
-from sumalls as s1
+    sd1.seller,
+    floor(avg(sd1.deal_income)) as average_income
+from sales_deals as sd1
 group by
-    s1.employee_id,
-    s1.seller
+    sd1.employee_id,
+    sd1.seller
 having
-    floor(avg(s1.sumall_income)) < (
-        select avg(s2.sumall_income)
-        from sumalls as s2
+    floor(avg(sd1.deal_income)) < (
+        select avg(sd2.deal_income)
+        from sales_deals as sd2
     )
 order by average_income asc;
 
@@ -57,7 +57,7 @@ order by average_income asc;
 -- seller — имя и фамилия продавца
 -- day_of_week — название дня недели на английском языке
 -- income — суммарная выручка продавца в день недели
-with sumsum as (
+with daily_sales as (
     select
         s.sale_date,
         e.employee_id,
@@ -75,7 +75,7 @@ select
     seller,
     floor(sum(income)) as income,
     trim(to_char(sale_date, 'day')) as day_of_week
-from sumsum
+from daily_sales
 group by
     employee_id,
     seller,
@@ -115,7 +115,7 @@ order by selling_month asc;
 -- customer — имя и фамилия покупателя
 -- sale_date — дата покупки
 -- seller — имя и фамилия продавца
-with filt as (
+with first_purchases as (
     select
         s.customer_id,
         s.sale_date,
@@ -139,7 +139,7 @@ select
     customer,
     sale_date,
     seller
-from filt
+from first_purchases
 where
     rn = 1
     and price = 0
